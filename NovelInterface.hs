@@ -2,6 +2,7 @@ module NovelInterface where
 
 data Order =  Clear
             | ClickWait
+            | NewLine
             | Wait Int
             | Mes String String
             | Music String Loop
@@ -23,20 +24,9 @@ data SaveData = SaveData {
     date :: Date,
     file :: String,
     line :: Int,
-    images :: [Order]
-} --deriving (Show,Eq)
-
-instance Eq SaveData where
-  d1 == d2 =  True
-
-instance Show SaveData where
-    show sd = show y ++ concat (map ((":"++).show) [m,d,h,min,s] ) where
-        y = year $ date sd
-        m = month $ date sd
-        d = day $ date sd
-        h = hour $ date sd
-        min = minute $ date sd
-        s = second $ date sd
+    images :: [Order],
+    bgMusic :: String
+} deriving (Show,Eq)
 
 data Date = Date {
     year   :: Int,
@@ -45,4 +35,16 @@ data Date = Date {
     hour   :: Int,
     minute :: Int,
     second :: Int
-    } deriving Show
+    }-- deriving Show
+
+instance Eq Date where
+    date1 == date2 = True
+
+instance Show Date where
+    show dt = show y ++ (concat $ map ((":"++).show) [m,d,h,min,s]) where
+        y = year dt
+        m = month dt
+        d = day dt
+        h = hour dt
+        min = minute dt
+        s = second dt
