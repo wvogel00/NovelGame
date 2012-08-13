@@ -1,5 +1,9 @@
 module NovelInterface where
 
+--[Image]、Mes,Maybe Music,Maybe Branch,命令群の情報を持つ
+type GameState = ([Order],Order,Maybe Order,Maybe Order,[Order])
+
+
 data Order =  Clear
             | ClickWait
             | NewLine
@@ -8,7 +12,7 @@ data Order =  Clear
             | Music String Loop
             | MusicStop
             | Image Int (Int,Int) FilePath
-            | Branch [(String,String)]
+            | Branch [(String , String , Maybe String)]
             | Save
             | Load
             | Menu [SaveData] [Option]  deriving (Eq,Show)
