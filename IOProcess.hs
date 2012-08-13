@@ -1,12 +1,23 @@
 module IOProcess where
 
 import Graphics.UI.WX
+import Graphics.UI.WXCore (bitmapGetSize)
 import NovelInterface
 import Control.Concurrent (threadDelay)
 import Control.Monad (foldM_)
 
+drawImages :: DC a -> [Order] -> IO()
+drawImages dc = foldM_ drawImg dc
+
+drawImg :: DC a -> Order -> IO (DC a)
+drawImg dc (Image _ pos file) = do
+    bm <- bitmapCreateFromFile file
+    --size <- bitmapGetSize bm
+    drawBitmap dc bm (uncurry point pos) False []
+    return dc
+
 drawMes :: Order -> IO()
-drawMes (Mes k str) = print k >> print str
+drawMes (Mes k str) = return () --print k >> print str
 
 processOrder :: [Order] -> IO [Order]
 processOrder order@(o:os) = case o of
