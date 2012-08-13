@@ -1,2 +1,28 @@
 wxHaskell,Parsecを使ってゲームエンジンを作成する。
-マクロ実装の物理シミュレータ開発も目指す
+
+目標とするスクリプト及び機能は、以下の通り。
+
+effect("sample.wav")
+効果音など、繰り返しの無い音楽再生
+music("sample.wav")
+繰り返しのある音楽再生。また、この音楽を停止する関数は、
+musicOff()
+
+mes("hello")
+mes("You" , "hello")
+前者は地の文、後者は発話者情報を含む。
+mes("","hello")
+とすると、地の文と同じ扱いとなる。
+
+image( 0, 0,0, "sample.jpg")
+image(0,"sample.jpg")
+image("sample.jpg")
+推奨は一番上。
+2番目は、座標(0,0)開始、3番目は、(0,0)開始で最後尾レイヤーへの描画となる
+
+branch :: 選択肢を示す
+branch ("文章" -> label in "file.txt")
+または
+branch ("文章" -> label)
+の二通りの記述が可能。後者は、ラベルが同一ファイル内にあるときのみ可能
+推奨は前者。
