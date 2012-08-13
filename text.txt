@@ -1,0 +1,3 @@
+music ("test.mp3")
+mes ("大橋","こんにちは。えー、こんにちは！%c")
+musicOff()
