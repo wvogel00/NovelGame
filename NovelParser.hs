@@ -1,10 +1,9 @@
-module NovelParser where
+module NovelParser where 
 
 import Control.Applicative hiding ((<|>) , many)
 import Text.Parsec
 import Text.Parsec.String
 import Data.Maybe (fromJust)
-import Data.List (nub)
 import NovelInterface
 
 run :: Parser [Order] -> String -> IO [Order]
@@ -14,7 +13,16 @@ run p input = case (parse p "" input) of
 
 --start to parse
 novelParse :: Parser [Order]
-novelParse = message
+novelParse = do
+    token <- try (Just <$> (branch <|> sound <|> nWait <|> image) ) <|> return Nothing
+    spaces
+    message <- Just <$> try message <|> return Nothing
+    spaces
+    case (message,token) of
+        (Nothing,Nothing) -> return []
+        (Nothing,Just tk) -> (tk:) <$> novelParse
+        (Just ms,Nothing) -> (ms++) <$> novelParse
+        (Just ms,Just tk) -> ((tk:ms)++) <$> novelParse
 
 branch :: Parser Order
 branch = do
@@ -35,24 +43,23 @@ branches = ( do
 message :: Parser [Order]
 message = do
     string "mes" *> spaces
-    (k,orders') <- (char '(' *> spaces *> (try mes1 <|> mes2) <* spaces <* char ')')
-    let (o:orders) = map (convert k) orders'
-    return.nub.snd $ foldl append (o,[]) orders  where
+    (k,orders) <- (char '(' *> spaces *> (try mes1 <|> mes2) <* spaces <* char ')')
+    return $ map (convert k) orders where
 		mes1 = (,) <$> nString <*> getNext scenario'
 		mes2 = (,) "" <$> scenario'
-		scenario' = char '\"' *> scenario <* char '\"'
-		append (Mes _ s1,xs) (Mes k s2) = (Mes k (s1++s2),xs++[Mes k (s1++s2)])
-		append (x,xs) o = (o,xs++[x])
+		scenario' = char '\"' *> scenario
 
 --台詞部分のパース
 scenario :: Parser [Order]
 scenario = do
-    x <- Just <$> mesEvent
-          <|> Just.(Mes "") <$>
-               (try ((:) <$> char '%' <*> many1 (noneOf "%\"ncw"))
-                <|> many1 (noneOf "%\""))
-          <|> return Nothing
+    x <- Just <$> (mesEvent <|> mesContents)
+                  <|> (char '\"' *> return Nothing)
     if x == Nothing then return [] else (fromJust x:) <$> scenario
+
+mesContents :: Parser Order
+mesContents = do
+    Mes "" <$> (many1 (noneOf "\"%")
+               <|>( (:) <$> char '%' <*> many1 (noneOf "%\"")))
 
 convert k (Mes _ str) = Mes k str
 convert _ order = order
@@ -66,16 +73,11 @@ nCWait = string "%w" *> return ClickWait
 nNewLine = string "%n" *> return NewLine
 ----------------------------------------------------ここまで
 
--- "~"
-nString :: Parser String
-nString = (char '\"' *> many (noneOf "\"") <* char '\"')
-
 -- wait(number)
 nWait :: Parser Order
 nWait = do
     string "wait" *> spaces
     Wait <$> (char '(' *> spaces *> num <* spaces <* char ')')
-
 
 image :: Parser Order
 image = do
@@ -87,7 +89,6 @@ image = do
         mk1 n     file = Image n (0,0) file
         mk2       file = Image 10 (0,0) file
         mk3 n x y file = Image n (x,y) file
-
 ---sound----------------------------------------------
 sound :: Parser Order
 sound = try music <|> musicOff <|> soundEffect
@@ -107,6 +108,9 @@ musicOff = do
     string "musicOff" *> spaces *> char '(' *> spaces *> char ')'
     return MusicStop   
 -----------------------------------------------------
+
+nString :: Parser String
+nString = (char '\"' *> many (noneOf "\"") <* char '\"')
 
 --ファイルを示す文字列をパース
 fileStr :: Parser String
