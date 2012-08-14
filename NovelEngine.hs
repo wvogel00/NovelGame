@@ -13,7 +13,7 @@ novelGame :: IO()
 novelGame = do
     menubar <- myMenuBar
     orders <- (run novelParse =<< readFile "text.txt")
-    contents <- varCreate ([Save],Mes "" "",Nothing,Nothing,orders)
+    contents <- varCreate ([Image 0 (100,50) "test.png"],Nothing,Nothing,Nothing,orders)
     f <- frame [text := "ノベルゲームエンジン"]
     p <- panel f [on paint := paintScreen contents]
     t <- timer f [interval := 20 , on command := updateScreen contents p]
@@ -30,7 +30,7 @@ paintScreen :: Var GameState -> DC a -> Rect -> IO()
 paintScreen vContents dc viewArea = do
     (imgs,mes,music,branch,orders) <- varGet vContents
     set dc [brushColor := red , brushKind := BrushSolid]
-    mapM_ (drawPart dc) imgs --描画対象それぞれを描画
+    drawImages dc imgs --描画対象それぞれを描画
     drawMes mes
     newOrders <- processOrder orders      --IOイベントの命令を処理
     playSound music
